@@ -11,10 +11,12 @@ def get_key(dictionnaire, valeur):
             return cle
     return None
 
+
 def item_teleportation(laby: Maze):
     items = {(randint(2, laby.width - 5), randint(2, laby.height - 2)): "O",
-            (randint(2, laby.width - 2), randint(2, laby.height - 2)): "O"}
+             (randint(2, laby.width - 2), randint(2, laby.height - 2)): "O"}
     return items
+
 
 def teleportation(joueur: dict, portail: dict):
     posJoueur = list(joueur.keys())[0]
@@ -30,6 +32,25 @@ def teleportation(joueur: dict, portail: dict):
                 break
 
     return joueur
+
+
+def deplacement(joueur: dict, laby: Maze, key) -> dict:
+    cleJoueur = get_key(joueur, "#")
+    if key == curses.KEY_DOWN and (cleJoueur[0] + 1, cleJoueur[1]) in laby.get_reachable_cells(cleJoueur):
+        cleJoueur = (cleJoueur[0] + 1, cleJoueur[1])
+
+    elif key == curses.KEY_RIGHT and (cleJoueur[0], cleJoueur[1] + 1) in laby.get_reachable_cells(cleJoueur):
+        cleJoueur = (cleJoueur[0], cleJoueur[1] + 1)
+
+    elif key == curses.KEY_UP and (cleJoueur[0] - 1, cleJoueur[1]) in laby.get_reachable_cells(cleJoueur):
+        cleJoueur = (cleJoueur[0] - 1, cleJoueur[1])
+
+    elif key == curses.KEY_LEFT and (cleJoueur[0], cleJoueur[1] - 1) in laby.get_reachable_cells(cleJoueur):
+        cleJoueur = (cleJoueur[0], cleJoueur[1] - 1)
+
+    joueur = {cleJoueur: "#"}
+    return joueur
+
 
 def lancement_jeu(stdscr):
     pygame.mixer.init()
@@ -58,12 +79,11 @@ def lancement_jeu(stdscr):
 
     # Affichage du texte
     for i, line in enumerate(lines):
-        stdscr.addstr(i+5, 5, line)  # Ajoute 1 pour la bordure
+        stdscr.addstr(i + 5, 5, line)  # Ajoute 1 pour la bordure
 
     stdscr.refresh()
 
     stdscr.getch()  # Attend une entrée de l'utilisateur
-
 
 
 def menu(stdscr):
@@ -87,8 +107,7 @@ def menu(stdscr):
              " Facile : Appuyer sur F   |   Moyen : Appuyez sur M   |   Difficile : Appuyez sur D   "]
 
     for i, line in enumerate(lines):
-        stdscr.addstr(i+5, 5, line)  # Ajoute 1 pour la bordure
-
+        stdscr.addstr(i + 5, 5, line)  # Ajoute 5 pour la bordure
 
     stdscr.refresh()
 
@@ -105,15 +124,64 @@ def menu(stdscr):
             break
     return res
 
+
+def felicitation(stdscr):
+    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+    ROUGE = curses.color_pair(1)
+    curses.init_color(2, 1000, 0, 0)
+    ORANGE = curses.color_pair(1)
+    curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    JAUNE = curses.color_pair(3)
+    curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    VERT = curses.color_pair(4)
+    curses.init_pair(5, curses.COLOR_BLUE, curses.COLOR_BLACK)
+    BLEU = curses.color_pair(5)
+
+    stdscr.clear()
+
+    stdscr.addstr(5, 5, " _____                             _  _  _  ", ROUGE)
+    stdscr.addstr(6, 5, "/  ___|                           | || || | ", ROUGE)
+    stdscr.addstr(7, 5, "\ `--.  _   _  _ __    ___  _ __  | || || | ", ORANGE)
+    stdscr.addstr(8, 5, " `--. \| | | || '_ \  / _ \| '__| | || || | ", JAUNE)
+    stdscr.addstr(9, 5, "/\__/ /| |_| || |_) ||  __/| |    |_||_||_| ", VERT)
+    stdscr.addstr(10, 5, "\____/  \__,_|| .__/  \___||_|    (_)(_)(_) ", BLEU)
+    stdscr.addstr(11, 5, "              | |                           ", BLEU)
+    stdscr.addstr(12, 5, "              |_|                           ", BLEU)
+
+    stdscr.refresh()
+    stdscr.getch()
+
+def niveau_facile(stdscr):
+    laby = Maze.Maze.gen_sidewinder(15, 15)
+    cellDebut = (0, 0)
+    cellFin = (laby.width - 1, laby.height - 1)
+    JOUEUR = {cellDebut: "#"}
+
+    final = JOUEUR.copy()
+
+    stdscr.clear()
+    stdscr.addstr(laby.overlay(final))
+    while get_key(JOUEUR, "#") != cellFin:
+        key = stdscr.getch()
+        JOUEUR = deplacement(JOUEUR, laby, key)
+
+        final = JOUEUR.copy()
+        stdscr.clear()
+        stdscr.addstr(laby.overlay(final))
+        stdscr.refresh()
+    stdscr.clear()
+    felicitation(stdscr)
+
 def main(stdscr):
     stdscr.clear()
 
     # Appelle la fonction pour afficher le texte
     lancement_jeu(stdscr)
+    stdscr.getch()
 
     key = menu(stdscr)
     if key == 'f':
-        print("vive les zizis")
+        niveau_facile(stdscr)
     if key == 'm':
         print("Hello World!")
     if key == 'd':
@@ -123,9 +191,9 @@ def main(stdscr):
 
 wrapper(main)
 
-
 def item_solution(laby: Maze):
     return {(randint(2, laby.width - 5), randint(2, laby.height - 5)): "$"}
+
 
 def solution(laby: Maze, joueur: dict) -> dict:
     cellFin = (laby.width - 1, laby.height - 1)
