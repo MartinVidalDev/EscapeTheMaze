@@ -438,4 +438,4 @@ class Maze:
 
     def distance_geo(self, c1: tuple, c2: tuple):
         chemin = self.solve_bfs(c1, c2)
-        return chemin
+        return len(chemin) - 1
