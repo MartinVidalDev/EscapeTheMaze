@@ -1,3 +1,5 @@
+import time
+
 import Maze
 from random import randint
 import curses
@@ -13,8 +15,8 @@ def get_key(dictionnaire, valeur):
 
 
 def item_teleportation(laby: Maze):
-    items = {(randint(2, laby.width - 5), randint(2, laby.height - 2)): "O",
-             (randint(2, laby.width - 2), randint(2, laby.height - 2)): "O"}
+    items = {(randint(2, 5), randint(2, 5)): "O",
+             (randint(8, 8), randint(8, 8)): "O"}
     return items
 
 
@@ -32,6 +34,18 @@ def teleportation(joueur: dict, portail: dict):
                 break
 
     return joueur
+
+def item_generation(laby: Maze):
+    return {(randint(0, laby.width), randint(0, laby.height)): "@"}
+
+def item_solution(laby: Maze, col : int):
+    return {(randint(0, laby.width), randint(0, laby.height - col)): "$"}
+
+def solution(laby: Maze, joueur: dict, cellFin: tuple) -> dict:
+    posJoueur = list(joueur.keys())[0]
+    solution = laby.solve_dfs(posJoueur, cellFin)
+    str_solution = {c: '*' for c in solution}
+    return str_solution
 
 
 def deplacement(joueur: dict, laby: Maze, key) -> dict:
@@ -83,9 +97,6 @@ def lancement_jeu(stdscr):
 
     stdscr.refresh()
 
-    stdscr.getch()  # Attend une entrée de l'utilisateur
-
-
 def menu(stdscr):
     res = ""
     stdscr.clear()
@@ -128,8 +139,6 @@ def menu(stdscr):
 def felicitation(stdscr):
     curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
     ROUGE = curses.color_pair(1)
-    curses.init_color(2, 1000, 0, 0)
-    ORANGE = curses.color_pair(1)
     curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     JAUNE = curses.color_pair(3)
     curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
@@ -141,7 +150,7 @@ def felicitation(stdscr):
 
     stdscr.addstr(5, 5, " _____                             _  _  _  ", ROUGE)
     stdscr.addstr(6, 5, "/  ___|                           | || || | ", ROUGE)
-    stdscr.addstr(7, 5, "\ `--.  _   _  _ __    ___  _ __  | || || | ", ORANGE)
+    stdscr.addstr(7, 5, "\ `--.  _   _  _ __    ___  _ __  | || || | ", ROUGE)
     stdscr.addstr(8, 5, " `--. \| | | || '_ \  / _ \| '__| | || || | ", JAUNE)
     stdscr.addstr(9, 5, "/\__/ /| |_| || |_) ||  __/| |    |_||_||_| ", VERT)
     stdscr.addstr(10, 5, "\____/  \__,_|| .__/  \___||_|    (_)(_)(_) ", BLEU)
@@ -152,23 +161,78 @@ def felicitation(stdscr):
     stdscr.getch()
 
 def niveau_facile(stdscr):
-    laby = Maze.Maze.gen_sidewinder(15, 15)
+    pygame.mixer.init()
+    pygame.mixer.music.load("musiques/intro.mp3")
+    pygame.mixer.music.play()
+    while pygame.mixer.get_busy():
+        pass
+
+    laby = Maze.Maze.gen_btree(15, 15)
     cellDebut = (0, 0)
     cellFin = (laby.width - 1, laby.height - 1)
     JOUEUR = {cellDebut: "#"}
+    ARRIVE = {cellFin: "§"}
+    PORTAIL = item_teleportation(laby)
+    RANDOM = item_generation(laby)
+    SOLUTION = item_solution(laby, 7)
+    compteur = 0
+    flagGen = 0
+    flagSol = 0
 
     final = JOUEUR.copy()
+    final.update(ARRIVE)
+    final.update(PORTAIL)
+    final.update(RANDOM)
+    final.update(SOLUTION)
 
     stdscr.clear()
     stdscr.addstr(laby.overlay(final))
     while get_key(JOUEUR, "#") != cellFin:
+
         key = stdscr.getch()
         JOUEUR = deplacement(JOUEUR, laby, key)
 
         final = JOUEUR.copy()
+        final.update(ARRIVE)
+        final.update(PORTAIL)
+
+        if get_key(JOUEUR, "#") == get_key(PORTAIL, "O"):
+            JOUEUR = teleportation(JOUEUR, PORTAIL)
+
+        if get_key(JOUEUR, "#") == get_key(RANDOM, "@"):
+            laby = laby.gen_btree(15, 15)
+            del final[get_key(RANDOM, "@")]
+            RANDOM[get_key(RANDOM, "@")] = "/"
+            flagGen = 1
+
+        elif flagGen == 0:
+            final.update(RANDOM)
+
+        if get_key(JOUEUR, "#") == get_key(SOLUTION, "$"):
+            SOLUTION = solution(laby, JOUEUR, cellFin)
+            final.update(SOLUTION)
+            stdscr.clear()
+            stdscr.addstr(laby.overlay(final))
+            stdscr.refresh()
+            start_time = time.time()
+            while time.time() - start_time < 2:
+                pass
+            flagSol = 1
+
+        elif flagSol == 0:
+            final.update(SOLUTION)
+
+        final.update(JOUEUR)
+
         stdscr.clear()
         stdscr.addstr(laby.overlay(final))
-        stdscr.refresh()
+        stdscr.refresh()  # Rafraîchir l'affichage après chaque mise à jour
+        compteur += 1
+
+    stdscr.addstr(laby.height * 2 + 2, 14, f"Vous avez réussis en {compteur} coups !!!")
+    stdscr.addstr(laby.height * 2 + 3, 7, f"Le nombre minimal de coup était de : {laby.distance_geo(cellDebut, cellFin)} coups")
+    stdscr.refresh()
+    stdscr.getch()
     stdscr.clear()
     felicitation(stdscr)
 
@@ -189,7 +253,7 @@ def main(stdscr):
 
     stdscr.refresh()
 
-wrapper(main)
+wrapper(niveau_facile)
 
 def item_solution(laby: Maze):
     return {(randint(2, laby.width - 5), randint(2, laby.height - 5)): "$"}
