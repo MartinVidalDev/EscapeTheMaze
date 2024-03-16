@@ -280,7 +280,7 @@ def niveau_moyen(stdscr):
             JOUEUR = teleportation(JOUEUR, PORTAIL)
 
         if get_key(JOUEUR, "#") == get_key(RANDOM, "@"):
-            laby = laby.gen_btree(15, 15)
+            laby = laby.gen_fusion(15, 15)
             del final[get_key(RANDOM, "@")]
             RANDOM[get_key(RANDOM, "@")] = "/"
             flagGen = 1
@@ -318,6 +318,85 @@ def niveau_moyen(stdscr):
     stdscr.clear()
     felicitation(stdscr)
 
+def niveau_difficile(stdscr):
+    pygame.mixer.init()
+    pygame.mixer.music.load("musiques/difficile.mp3")
+    pygame.mixer.music.play(-1)
+    while pygame.mixer.get_busy():
+        pass
+
+    laby = Maze.Maze.gen_wilson(17, 17)
+    cellDebut = (0, 0)
+    cellFin = (laby.width - 1, laby.height - 1)
+    JOUEUR = {cellDebut: "#"}
+    ARRIVE = {cellFin: "§"}
+    PORTAIL = item_teleportation(laby)
+    RANDOM = item_generation(laby)
+    SOLUTION = item_solution(laby, 7)
+    sonArrivee = pygame.mixer.Sound("musiques/arrivee.mp3")
+    compteur = 0
+    flagGen = 0
+    flagSol = 0
+
+    final = JOUEUR.copy()
+    final.update(ARRIVE)
+    final.update(PORTAIL)
+    final.update(RANDOM)
+    final.update(SOLUTION)
+
+    stdscr.clear()
+    stdscr.addstr(laby.overlay(final))
+    while get_key(JOUEUR, "#") != cellFin:
+
+        key = stdscr.getch()
+        JOUEUR = deplacement(JOUEUR, laby, key)
+
+        final = JOUEUR.copy()
+        final.update(ARRIVE)
+        final.update(PORTAIL)
+
+        if get_key(JOUEUR, "#") == get_key(PORTAIL, "O"):
+            JOUEUR = teleportation(JOUEUR, PORTAIL)
+
+        if get_key(JOUEUR, "#") == get_key(RANDOM, "@"):
+            laby = laby.gen_wilson(17, 17)
+            del final[get_key(RANDOM, "@")]
+            RANDOM[get_key(RANDOM, "@")] = "/"
+            flagGen = 1
+
+        elif flagGen == 0:
+            final.update(RANDOM)
+
+        if get_key(JOUEUR, "#") == get_key(SOLUTION, "$"):
+            SOLUTION = solution(laby, JOUEUR, cellFin)
+            final.update(SOLUTION)
+            stdscr.clear()
+            stdscr.addstr(laby.overlay(final))
+            stdscr.refresh()
+            start_time = time.time()
+            while time.time() - start_time < 0.7:
+                pass
+            flagSol = 1
+
+        elif flagSol == 0:
+            final.update(SOLUTION)
+
+        final.update(JOUEUR)
+
+        stdscr.clear()
+        stdscr.addstr(laby.overlay(final))
+        stdscr.refresh()  # Rafraîchir l'affichage après chaque mise à jour
+        compteur += 1
+
+    pygame.mixer.music.stop()
+    sonArrivee.play()
+    stdscr.addstr(laby.height * 2 + 2, 14, f"Vous avez réussis en {compteur} coups !!!")
+    stdscr.addstr(laby.height * 2 + 3, 7, f"Le nombre minimal de coup était de : {laby.distance_geo(cellDebut, cellFin)} coups")
+    stdscr.refresh()
+    stdscr.getch()
+    stdscr.clear()
+    felicitation(stdscr)
+
 def main(stdscr):
     stdscr.clear()
 
@@ -331,7 +410,7 @@ def main(stdscr):
     if key == 'm':
         niveau_moyen(stdscr)
     if key == 'd':
-        print("Bonjour Monde!")
+        niveau_difficile(stdscr)
 
     stdscr.refresh()
 
