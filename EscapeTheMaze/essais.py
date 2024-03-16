@@ -67,17 +67,6 @@ def deplacement(joueur: dict, laby: Maze, key) -> dict:
 
 
 def lancement_jeu(stdscr):
-    pygame.mixer.init()
-
-    # Charge la musique
-    pygame.mixer.music.load("musiques/intro.mp3")
-
-    # Joue la musique
-    pygame.mixer.music.play()
-
-    # Attend que la musique soit lancée
-    while pygame.mixer.get_busy():
-        pass
 
     # Texte à afficher
     lines = [" _____                       _____ _         ___  ___              ",
@@ -136,7 +125,7 @@ def menu(stdscr):
     return res
 
 
-def felicitation(stdscr):
+def felicitation(stdscr, niveau: callable):
     curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
     ROUGE = curses.color_pair(1)
     curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
@@ -156,9 +145,22 @@ def felicitation(stdscr):
     stdscr.addstr(10, 5, "\____/  \__,_|| .__/  \___||_|    (_)(_)(_) ", BLEU)
     stdscr.addstr(11, 5, "              | |                           ", BLEU)
     stdscr.addstr(12, 5, "              |_|                           ", BLEU)
+    stdscr.addstr(14, 5, "Appuyez sur R pour relancer une partie")
+    stdscr.addstr(15, 5, "Appuyez sur M pour retourner au menu")
 
     stdscr.refresh()
-    stdscr.getch()
+
+    res = ""
+    while True:
+        key = stdscr.getch()
+        if key == ord('r') or key == ord('R'):
+            res = "r"
+            niveau(stdscr)
+            break
+        if key == ord('m') or key == ord('M'):
+            res = "m"
+            break
+    return res
 
 def niveau_facile(stdscr):
     pygame.mixer.init()
@@ -237,7 +239,8 @@ def niveau_facile(stdscr):
     stdscr.refresh()
     stdscr.getch()
     stdscr.clear()
-    felicitation(stdscr)
+    res = felicitation(stdscr, niveau_facile)
+    return res
 
 def niveau_moyen(stdscr):
     pygame.mixer.init()
@@ -316,7 +319,8 @@ def niveau_moyen(stdscr):
     stdscr.refresh()
     stdscr.getch()
     stdscr.clear()
-    felicitation(stdscr)
+    res = felicitation(stdscr, niveau_moyen)
+    return res
 
 def niveau_difficile(stdscr):
     pygame.mixer.init()
@@ -395,22 +399,43 @@ def niveau_difficile(stdscr):
     stdscr.refresh()
     stdscr.getch()
     stdscr.clear()
-    felicitation(stdscr)
+    res = felicitation(stdscr, niveau_difficile)
+    return res
 
 def main(stdscr):
-    stdscr.clear()
+    quitter = False
+    pygame.mixer.init()
 
-    # Appelle la fonction pour afficher le texte
+    # Charge la musique
+    pygame.mixer.music.load("musiques/intro.mp3")
+
+    # Joue la musique
+    pygame.mixer.music.play()
+
+    # Attend que la musique soit lancée
+    while pygame.mixer.get_busy():
+        pass
+
     lancement_jeu(stdscr)
     stdscr.getch()
 
-    key = menu(stdscr)
-    if key == 'f':
-        niveau_facile(stdscr)
-    if key == 'm':
-        niveau_moyen(stdscr)
-    if key == 'd':
-        niveau_difficile(stdscr)
+    while not quitter:
+        stdscr.clear()
+
+        key = menu(stdscr)
+        if key == 'f':
+            result = niveau_facile(stdscr)
+        elif key == 'm':
+            result = niveau_moyen(stdscr)
+        elif key == 'd':
+            result = niveau_difficile(stdscr)
+
+        # Si la partie est terminée et l'utilisateur souhaite revenir au menu
+        if result == 'm':
+            pygame.mixer.init()
+            pygame.mixer.music.load("musiques/intro.mp3")
+            pygame.mixer.music.play()
+            continue  # Revenir au menu
 
     stdscr.refresh()
 
