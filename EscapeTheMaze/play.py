@@ -104,7 +104,9 @@ def menu(stdscr):
              "                                                         _/ |                         ",
              "                                                        |__/                          ",
              "                                                                                      ",
-             " Facile : Appuyer sur F   |   Moyen : Appuyez sur M   |   Difficile : Appuyez sur D   "]
+             " Facile : Appuyer sur F   |   Moyen : Appuyez sur M   |   Difficile : Appuyez sur D   ",
+             "                                                                                      ",
+             "                  Si vous souhaitez quitter le jeu, appuyez sur Q                     "]
 
     for i, line in enumerate(lines):
         stdscr.addstr(i + 5, 5, line)  # Ajoute 5 pour la bordure
@@ -120,6 +122,9 @@ def menu(stdscr):
             res = chr(key).lower()
             break
         elif key == ord('d') or key == ord('D'):
+            res = chr(key).lower()
+            break
+        elif key == ord('q') or key == ord('Q'):
             res = chr(key).lower()
             break
     return res
@@ -404,15 +409,10 @@ def niveau_difficile(stdscr):
 
 def main(stdscr):
     quitter = False
+    result = ""
     pygame.mixer.init()
-
-    # Charge la musique
     pygame.mixer.music.load("musiques/intro.mp3")
-
-    # Joue la musique
-    pygame.mixer.music.play()
-
-    # Attend que la musique soit lancée
+    pygame.mixer.music.play(-1)
     while pygame.mixer.get_busy():
         pass
 
@@ -420,6 +420,10 @@ def main(stdscr):
     stdscr.getch()
 
     while not quitter:
+
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.load("musiques/intro.mp3")
+            pygame.mixer.music.play(-1)
         stdscr.clear()
 
         key = menu(stdscr)
@@ -429,12 +433,11 @@ def main(stdscr):
             result = niveau_moyen(stdscr)
         elif key == 'd':
             result = niveau_difficile(stdscr)
+        elif key == 'q':
+            quitter = True
 
         # Si la partie est terminée et l'utilisateur souhaite revenir au menu
         if result == 'm':
-            pygame.mixer.init()
-            pygame.mixer.music.load("musiques/intro.mp3")
-            pygame.mixer.music.play()
             continue  # Revenir au menu
 
     stdscr.refresh()
