@@ -70,7 +70,7 @@ def lancement_jeu(stdscr):
     pygame.mixer.init()
 
     # Charge la musique
-    pygame.mixer.music.load("intro.mp3")
+    pygame.mixer.music.load("musiques/intro.mp3")
 
     # Joue la musique
     pygame.mixer.music.play()
@@ -162,8 +162,9 @@ def felicitation(stdscr):
 
 def niveau_facile(stdscr):
     pygame.mixer.init()
-    pygame.mixer.music.load("musiques/intro.mp3")
-    pygame.mixer.music.play()
+    pygame.mixer.music.load("musiques/facile.mp3")
+    sonArrivee = pygame.mixer.Sound("musiques/arrivee.mp3")
+    pygame.mixer.music.play(-1)
     while pygame.mixer.get_busy():
         pass
 
@@ -229,6 +230,87 @@ def niveau_facile(stdscr):
         stdscr.refresh()  # Rafraîchir l'affichage après chaque mise à jour
         compteur += 1
 
+    pygame.mixer.music.stop()
+    sonArrivee.play()
+    stdscr.addstr(laby.height * 2 + 2, 14, f"Vous avez réussis en {compteur} coups !!!")
+    stdscr.addstr(laby.height * 2 + 3, 7, f"Le nombre minimal de coup était de : {laby.distance_geo(cellDebut, cellFin)} coups")
+    stdscr.refresh()
+    stdscr.getch()
+    stdscr.clear()
+    felicitation(stdscr)
+
+def niveau_moyen(stdscr):
+    pygame.mixer.init()
+    pygame.mixer.music.load("musiques/moyen.mp3")
+    pygame.mixer.music.play(-1)
+    while pygame.mixer.get_busy():
+        pass
+
+    laby = Maze.Maze.gen_fusion(15, 15)
+    cellDebut = (0, 0)
+    cellFin = (laby.width - 1, laby.height - 1)
+    JOUEUR = {cellDebut: "#"}
+    ARRIVE = {cellFin: "§"}
+    PORTAIL = item_teleportation(laby)
+    RANDOM = item_generation(laby)
+    SOLUTION = item_solution(laby, 7)
+    sonArrivee = pygame.mixer.Sound("musiques/arrivee.mp3")
+    compteur = 0
+    flagGen = 0
+    flagSol = 0
+
+    final = JOUEUR.copy()
+    final.update(ARRIVE)
+    final.update(PORTAIL)
+    final.update(RANDOM)
+    final.update(SOLUTION)
+
+    stdscr.clear()
+    stdscr.addstr(laby.overlay(final))
+    while get_key(JOUEUR, "#") != cellFin:
+
+        key = stdscr.getch()
+        JOUEUR = deplacement(JOUEUR, laby, key)
+
+        final = JOUEUR.copy()
+        final.update(ARRIVE)
+        final.update(PORTAIL)
+
+        if get_key(JOUEUR, "#") == get_key(PORTAIL, "O"):
+            JOUEUR = teleportation(JOUEUR, PORTAIL)
+
+        if get_key(JOUEUR, "#") == get_key(RANDOM, "@"):
+            laby = laby.gen_btree(15, 15)
+            del final[get_key(RANDOM, "@")]
+            RANDOM[get_key(RANDOM, "@")] = "/"
+            flagGen = 1
+
+        elif flagGen == 0:
+            final.update(RANDOM)
+
+        if get_key(JOUEUR, "#") == get_key(SOLUTION, "$"):
+            SOLUTION = solution(laby, JOUEUR, cellFin)
+            final.update(SOLUTION)
+            stdscr.clear()
+            stdscr.addstr(laby.overlay(final))
+            stdscr.refresh()
+            start_time = time.time()
+            while time.time() - start_time < 1:
+                pass
+            flagSol = 1
+
+        elif flagSol == 0:
+            final.update(SOLUTION)
+
+        final.update(JOUEUR)
+
+        stdscr.clear()
+        stdscr.addstr(laby.overlay(final))
+        stdscr.refresh()  # Rafraîchir l'affichage après chaque mise à jour
+        compteur += 1
+
+    pygame.mixer.music.stop()
+    sonArrivee.play()
     stdscr.addstr(laby.height * 2 + 2, 14, f"Vous avez réussis en {compteur} coups !!!")
     stdscr.addstr(laby.height * 2 + 3, 7, f"Le nombre minimal de coup était de : {laby.distance_geo(cellDebut, cellFin)} coups")
     stdscr.refresh()
@@ -247,21 +329,10 @@ def main(stdscr):
     if key == 'f':
         niveau_facile(stdscr)
     if key == 'm':
-        print("Hello World!")
+        niveau_moyen(stdscr)
     if key == 'd':
         print("Bonjour Monde!")
 
     stdscr.refresh()
 
-wrapper(niveau_facile)
-
-def item_solution(laby: Maze):
-    return {(randint(2, laby.width - 5), randint(2, laby.height - 5)): "$"}
-
-
-def solution(laby: Maze, joueur: dict) -> dict:
-    cellFin = (laby.width - 1, laby.height - 1)
-    posJoueur = list(joueur.keys())[0]
-    solution = laby.solve_dfs(posJoueur, cellFin)
-    str_solution = {c: '*' for c in solution}
-    return str_solution
+wrapper(main)
