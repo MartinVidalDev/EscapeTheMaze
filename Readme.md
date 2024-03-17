@@ -6,6 +6,8 @@ VIDAL Martin
 
 "Escape the Maze" est un jeu issue d'une SAE autour des graphes et plus précisément des labyrinthes où le joueur doit naviguer à travers un labyrinthe complexe pour atteindre la sortie.
 
+Pour profiter un maximum, n'hésitez pas à mettre un casque et mettez la musique à fond !!!
+
 ## Installation
 
 Pour installer le jeu, suivez ces étapes :
