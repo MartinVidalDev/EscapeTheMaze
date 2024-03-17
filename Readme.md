@@ -58,7 +58,7 @@ pip install window-curses
 
 **Dernière étape, configurer l'interpréteur python du projet en version 3.10**
 
-Lien pour l'Installation : ![](https://www.python.org/downloads/release/python-3100/)
+Lien pour l'Installation : ![(https://www.python.org/downloads/release/python-3100/](https://www.python.org/downloads/release/python-3100/)
 
 
 ## Comment jouer
