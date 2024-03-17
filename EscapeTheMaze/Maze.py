@@ -5,7 +5,7 @@ class Maze:
     """
     Classe Labyrinthe
     Représentation sous forme de graphe non-orienté
-    dont chaque sommet est une cellule (un tuple (l,c))
+    dont chaque sommet est une cellule (un tuple (l, c))
     et dont la structure est représentée par un dictionnaire
       - clés : sommets
       - valeurs : ensemble des sommets voisins accessibles
@@ -25,9 +25,9 @@ class Maze:
     def info(self):
         """
         **NE PAS MODIFIER CETTE MÉTHODE**
-        Affichage des attributs d'un objet 'Maze' (fonction utile pour deboguer)
-        Retour:
-            chaîne (string): description textuelle des attributs de l'objet
+        Affichage des attributs d'un objet 'Maze' (fonction utile pour déboguer)
+        Retour :
+            chaîne (string) : description textuelle des attributs de l'objet
         """
         txt = "**Informations sur le labyrinthe**\n"
         txt += f"- Dimensions de la grille : {self.height} x {self.width}\n"
@@ -49,7 +49,7 @@ class Maze:
         """
         **NE PAS MODIFIER CETTE MÉTHODE**
         Représentation textuelle d'un objet Maze (en utilisant des caractères ascii)
-        Retour:
+        Retour :
              chaîne (str) : chaîne de caractères représentant le labyrinthe
         """
         txt = ""
@@ -80,22 +80,46 @@ class Maze:
 
         return txt
 
-    def add_wall(self, c1, c2):
+    def add_wall(self, c1: tuple, c2: tuple) -> None:
+        """
+        Cette méthode permet d'ajouter un mur entre la cellule c1 et la cellule c2
+        Retour :
+            Ne retourne rien
+        """
         self.neighbors[c1].remove(c2)
         self.neighbors[c2].remove(c1)
+        return None
 
-    def remove_wall(self, c1, c2):
+    def remove_wall(self, c1: tuple, c2: tuple) -> None:
+        """
+        Cette méthode permet de retirer un mur entre la cellule c1 et la cellule c2
+        Retour :
+            Ne retourne rien
+        """
         self.neighbors[c1].add(c2)
         self.neighbors[c2].add(c1)
+        return None
 
-    def get_cells(self):
+    def get_cells(self) -> list:
+        """
+        Méthode qui permet d'avoir une liste de toutes les cellules qui composent le labyrinthe
+        Retour :
+            Retourne une liste de tuples
+        """
         liste = []
         for i in range(self.height):
             for j in range(self.width):
                 liste.append((i, j))
         return liste
 
-    def get_walls(self):
+    def get_walls(self) -> list:
+        """
+        Méthode qui permet d'avoir une liste de tous les murs qui composent le labyrinthe
+        Retour :
+            Retourne une liste de tuples de cellules
+        Exemple :
+            [[(0, 0), (0, 1)], [(0, 1), (1, 1)]]
+        """
         liste = []
         for i in range(self.height):
             for j in range(self.width):
@@ -105,23 +129,40 @@ class Maze:
                     liste.append([(i, j), (i + 1, j)])
         return liste
 
-    def fill(self):
+    def fill(self) -> None:
+        """
+        Méthode qui permet d'ajouter tous les murs possibles dans le labyrinthe
+        Retour :
+            Ne retourne rien
+        """
         for i in range(self.height):
             for j in range(self.width):
                 if j + 1 < self.width and (i, j + 1) in self.neighbors[(i, j)]:
                     self.add_wall((i, j), (i, j + 1))
                 if i + 1 < self.height and (i + 1, j) in self.neighbors[(i, j)]:
                     self.add_wall((i, j), (i + 1, j))
+        return None
 
-    def empty(self):
+    def empty(self) -> None:
+        """
+        Méthode qui supprime tous les murs du labyrinthe
+        Retour :
+            Ne retourne rien
+        """
         for i in range(self.height):
             for j in range(self.width):
                 if j + 1 < self.width and (i, j + 1) not in self.neighbors[(i, j)]:
                     self.remove_wall((i, j), (i, j + 1))
                 if i + 1 < self.height and (i + 1, j) not in self.neighbors[(i, j)]:
                     self.remove_wall((i, j), (i + 1, j))
+        return None
 
-    def get_contiguous_cells(self, c):
+    def get_contiguous_cells(self, c: tuple) -> list:
+        """
+        Méthode qui permet d'avoir une liste des cellules contiguës et dans la grille à la cellule passée en paramètre
+        Retour :
+            Retourne une liste de tuples
+        """
         liste = []
         (i, j) = c
         if j - 1 >= 0:
@@ -134,7 +175,13 @@ class Maze:
             liste.append((i + 1, j))
         return liste
 
-    def get_reachable_cells(self, c):
+    def get_reachable_cells(self, c: tuple) -> list:
+        """
+        Méthode qui permet d'avoir une liste des cellules accessibles dans la grille
+        depuis la cellule c passée en paramètre
+        Retour :
+            Retourne une liste de tuples
+        """
         liste = []
         (i, j) = c
         if j - 1 >= 0 and (i, j - 1) in self.neighbors[(i, j)]:
@@ -148,7 +195,12 @@ class Maze:
         return liste
 
     @classmethod
-    def gen_btree(cls, h, w):
+    def gen_btree(cls, h: int, w: int) -> 'Maze':
+        """
+        Méthode de classe qui permet de générer un labyrinthe selon l'algorithme de génération par arbre binaire
+        Retour :
+            Retourne le labyrinthe généré
+        """
         laby = Maze(h, w)
         for i in range(laby.height):
             for j in range(laby.width):
@@ -167,7 +219,12 @@ class Maze:
         return laby
 
     @classmethod
-    def gen_sidewinder(cls, h, w):
+    def gen_sidewinder(cls, h: int, w: int) -> 'Maze':
+        """
+        Méthode de classe qui permet de générer un labyrinthe selon l'algorithme SideWinder
+        Retour :
+            Retourne le labyrinthe généré
+        """
         laby = Maze(h, w)
 
         for i in range(laby.height - 1):
@@ -178,46 +235,57 @@ class Maze:
                     laby.remove_wall((i, j), (i, j + 1))
                 else:
                     murACasser = choice(sequence)
-                    laby.remove_wall(murACasser, (murACasser[0] + 1, murACasser[1])) # On casse le mur SUD
+                    laby.remove_wall(murACasser, (murACasser[0] + 1, murACasser[1]))  # On casse le mur SUD
                     sequence = []
-            sequence.append((i, w - 1)) # Au cas ou on arrive pas à la dernière cellule
+            sequence.append((i, w - 1))  # Au cas où on n'arrive pas à la dernière cellule
             murACasser = choice(sequence)
-            laby.remove_wall(murACasser, (murACasser[0] + 1, murACasser[1])) # On casse le mur SUD
+            laby.remove_wall(murACasser, (murACasser[0] + 1, murACasser[1]))  # On casse le mur SUD
 
-        for j in range(laby.width - 1): # On supprime le mur EST de toute la ligne du bas
+        for j in range(laby.width - 1):  # On supprime le mur EST de toute la ligne du bas
             laby.remove_wall((h - 1, j), (h - 1, j + 1))
 
         return laby
 
     @classmethod
-    def gen_fusion(cls, h, w):
+    def gen_fusion(cls, h: int, w: int) -> 'Maze':
+        """
+        Méthode de classe qui permet de générer un labyrinthe selon l'algorithme de génération par fusion des chemins
+        Retour :
+            Retourne le labyrinthe généré
+        """
 
-        laby = Maze(h, w) # Initialisation du labyrinthe
-        label = {} # Création du label (dictionnaire)
-        cpt = 1 # Création du compteur pour le label
+        laby = Maze(h, w)  # Initialisation du labyrinthe
+        label = {}  # Création du label (dictionnaire)
+        cpt = 1  # Création du compteur pour le label
 
-        # Labelisation de toutes les cellules du labyrinthe
+        # Labellisation de toutes les cellules du labyrinthe
         for i in range(laby.height):
             for j in range(laby.width):
                 label[(i, j)] = cpt
                 cpt += 1
 
-        listeMurs = laby.get_walls() # On récupère tout les murs
-        shuffle(listeMurs) # On mélange les murs
+        listeMurs = laby.get_walls()  # On récupère tous les murs
+        shuffle(listeMurs)  # On mélange les murs
 
-        for i in listeMurs: # On parcours la liste des murs
-            if label[i[0]] != label[i[1]]: # Si deux cellules ont un label différent :
-                laby.remove_wall((i[0]), (i[1])) # On retire le mur entre elle
+        for i in listeMurs:  # On parcours la liste des murs
+            if label[i[0]] != label[i[1]]:  # Si deux cellules ont un label différent :
+                laby.remove_wall((i[0]), (i[1]))  # On retire le mur entre elle
                 # On récupère le label des deux cellules
                 labC1 = label[i[0]]
                 labC2 = label[i[1]]
-                for wall, lab in label.items(): # On parcours le label
-                    if lab == labC2: # Si une cellule à le même label que notre deuxième cellule :
-                        label[wall] = labC1 # On lui affecte le label de la 1ère cellule
+                for wall, lab in label.items():  # On parcourt le label
+                    if lab == labC2:  # Si une cellule a le même label que notre deuxième cellule :
+                        label[wall] = labC1  # On lui affecte le label de la 1re cellule
         return laby
 
     @classmethod
-    def gen_exploration(cls, h, w):
+    def gen_exploration(cls, h: int, w: int) -> 'Maze':
+        """
+        Méthode de classe qui permet de générer un labyrinthe selon une "exploration" aléatoire du labyrinthe,
+        à la manière d’un parcours en profondeur, en cassant les murs à mesure qu’on avance
+        Retour :
+            Retourne le labyrinthe généré
+        """
         laby = Maze(h, w)  # Initialisation du labyrinthe
         premiereCellule = choice(laby.get_cells())  # Choix d'une cellule au hasard
         visite = [premiereCellule]  # Marquer cette cellule comme étant visitée
@@ -233,8 +301,8 @@ class Maze:
                 if a not in visite:
                     cellulesNonVisites.append(a)
 
-            if cellulesNonVisites: # Si il y a un élément dans la liste
-                celluleChoisie = choice(cellulesNonVisites)  # Choix aléatoire parmis les voisins de notre cellule
+            if cellulesNonVisites:  # S'il y a un élément dans la liste
+                celluleChoisie = choice(cellulesNonVisites)  # Choix aléatoire parmi les voisins de notre cellule
                 # en haut de la pile
                 laby.remove_wall(celluleHaut, celluleChoisie)  # Cassage du mur entre la cellule tirée au sort et
                 # celle du haut de la pile
@@ -245,7 +313,12 @@ class Maze:
         return laby
 
     @classmethod
-    def gen_wilson(cls, h, w):
+    def gen_wilson(cls, h: int, w: int) -> 'Maze':
+        """
+        Méthode de classe qui permet de générer un labyrinthe selon l'algorithme de Wilson
+        Retour :
+            Retourne le labyrinthe généré
+        """
 
         laby = Maze(h, w)
         toutesCellules = laby.get_cells()
@@ -253,9 +326,9 @@ class Maze:
         celluleDepart = choice(toutesCellules)
         visite.append(celluleDepart)
 
-        while len(visite) < len(toutesCellules): # Tant qu'il reste des cases non marquées :
+        while len(visite) < len(toutesCellules):  # Tant qu'il reste des cases non marquées :
 
-            cellulesNonVisitees = [] # Ajout dans un liste de toutes les cellule non marquées
+            cellulesNonVisitees = []  # Ajout dans une liste de toutes les cellules non marquées
             for a in toutesCellules:
                 if a not in visite:
                     cellulesNonVisitees.append(a)
@@ -264,22 +337,23 @@ class Maze:
             chemin = [celluleDepart]
             celluleActuelle = celluleDepart
 
-            while celluleActuelle not in visite: # Tant que la case actuelle ne rencontre pas une case marquée
+            while celluleActuelle not in visite:  # Tant que la case actuelle ne rencontre pas une case marquée
                 cellulesVoisines = laby.get_contiguous_cells(celluleActuelle)
                 shuffle(cellulesVoisines)
-                celluleSuivante = choice(cellulesVoisines) # On choisit la prochaine case# aléatoirement
+                celluleSuivante = choice(cellulesVoisines)  # On choisit la prochaine case# aléatoirement
 
-                if celluleSuivante in chemin: # Si la tête semort la queue
-                    index = chemin.index(celluleSuivante) # On ne garde que la première occurence
-                    chemin = chemin[:index + 1] # Supprime les cases que l'on a déjà visité à partir de la 1ère occurence
+                if celluleSuivante in chemin:  # Si la tête se mort la queue
+                    index = chemin.index(celluleSuivante)  # On ne garde que la première occurrence
+                    chemin = chemin[:index + 1]  # Supprime les cases que l'on a déjà visitées à partir de la 1ère
+                    # occurrence
                 else:
-                    chemin.append(celluleSuivante) # Ajoute la cases au chemin
+                    chemin.append(celluleSuivante)  # Ajoute la case au chemin
 
                 celluleActuelle = celluleSuivante
 
             for i in range(len(chemin) - 1):
-                visite.append(chemin[i]) # On ajoute les cases du chemins aux cases visitées
-                laby.remove_wall(chemin[i], chemin[i + 1]) # On retire les mur entre les cases du chemin
+                visite.append(chemin[i])  # On ajoute les cases du chemin aux cases visitées
+                laby.remove_wall(chemin[i], chemin[i + 1])  # On retire les murs entre les cases du chemin
 
         return laby
 
@@ -287,9 +361,9 @@ class Maze:
         """
         Rendu en mode texte, sur la sortie standard, \
         d'un labyrinthe avec du contenu dans les cellules
-        Argument:
+        Argument :
             content (dict) : dictionnaire tq content[cell] contient le caractère à afficher au milieu de la cellule
-        Retour:
+        Retour :
             string
         """
         if content is None:
@@ -333,7 +407,13 @@ class Maze:
         txt += "━━━┛\n"
         return txt
 
-    def solve_dfs(self, start: tuple, stop: tuple):
+    def solve_dfs(self, start: tuple, stop: tuple) -> list:
+        """
+        Méthode qui permet d'obtenir le chemin entre la cellule start et la cellule stop
+        en utilisant la méthode du parcours en profondeur (pile)
+        Retour :
+            Retourne la liste des cellules (liste de tuples)
+        """
         pile = [start]
         visite = [start]
         pred = {start: start}
@@ -359,7 +439,13 @@ class Maze:
 
         return solution
 
-    def solve_bfs(self, start: tuple, stop: tuple):
+    def solve_bfs(self, start: tuple, stop: tuple) -> list:
+        """
+        Méthode qui permet d'obtenir le chemin entre la cellule start et la cellule stop
+        en utilisant la méthode du parcours en largeur (file)
+        Retour :
+            Retourne la liste des cellules (liste de tuples)
+        """
         file = [start]
         visite = [start]
         pred = {start: start}
@@ -385,7 +471,13 @@ class Maze:
 
         return solution
 
-    def get_reachable_cells2(self, cell: tuple):
+    def get_reachable_cells2(self, cell: tuple) -> list:
+        """
+        Déclinaison de la méthode get_reachable_cells qui permet d'obtenir les cellules atteignables
+        dans un ordre précis : EST / NORD / OUEST / SUD
+        Retour :
+            Retourne la liste des cellules atteignables depuis la cellule passée en paramètre
+        """
         lst = []
         (i, j) = cell
         if j - 1 >= 0 and (i, j - 1) in self.neighbors[(i, j)]:
@@ -398,7 +490,13 @@ class Maze:
             lst.append((i-1, j))
         return lst
 
-    def solve_rhr(self, start, stop):
+    def solve_rhr(self, start: tuple, stop: tuple) -> list:
+        """
+        Méthode qui permet de résoudre un labyrinthe selon la technique de la "main droite"
+        comme si l'on se déplaçait aveuglément dans le labyrinthe
+        Retour :
+            Retourne la liste de toutes les cellules visitées
+        """
         pile = [start]
         visite = []  # Utiliser un ensemble pour garder une trace des cellules visitées
         pred = {start: start}
@@ -436,6 +534,12 @@ class Maze:
         chemin.reverse()
         return visite
 
-    def distance_geo(self, c1: tuple, c2: tuple):
+    def distance_geo(self, c1: tuple, c2: tuple) -> int:
+        """
+        Méthode qui permet d'obtenir la distance géodésique entre la cellule c1 et la cellule c2
+        (nombre minimal de déplacements nécessaires entre c1 et c2)
+        Retour :
+            Retourne un entier
+        """
         chemin = self.solve_bfs(c1, c2)
         return len(chemin) - 1
