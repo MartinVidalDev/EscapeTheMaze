@@ -1,5 +1,4 @@
 import time
-
 import Maze
 from random import randint
 import curses
@@ -7,20 +6,37 @@ from curses import wrapper
 import pygame
 
 
-def get_key(dictionnaire, valeur):
+def get_key(dictionnaire: dict, valeur: str):
+    """
+    Fonction qui permet de retourner la clé du dictionnaire passé en paramètre avec sa valeur associée (valeur)
+    Retour :
+        Retourne un tuple
+    """
     for cle, val in dictionnaire.items():
         if val == valeur:
             return cle
     return None
 
 
-def item_teleportation(laby: Maze):
+def item_teleportation(laby : Maze) -> dict:
+    """
+    Fonction qui permet de créer les portails de téléportation du labyrinthe.
+    Le 1er portail sera toujours dans la partie supérieure gauche du labyrinthe
+    et le 2ᵉ portail sera toujours dans la partie inférieure droite du labyrinthe
+    Retour :
+        Retourne un dictionnaire des deux portails
+    """
     items = {(randint(2, 5), randint(2, 5)): "O",
              (randint(8, 8), randint(8, 8)): "O"}
     return items
 
 
-def teleportation(joueur: dict, portail: dict):
+def teleportation(joueur: dict, portail: dict) -> dict:
+    """
+    Fonction qui permet de téléporter le joueur passé en paramètre aux coordonnées du deuxième portail
+    Retour :
+        Retourne le nouveau joueur (ses nouvelles coordonnées)
+    """
     posJoueur = list(joueur.keys())[0]
     posPortails = list(portail.keys())
 
@@ -35,20 +51,46 @@ def teleportation(joueur: dict, portail: dict):
 
     return joueur
 
-def item_generation(laby: Maze):
+
+def item_generation(laby: Maze) -> dict:
+    """
+    Fonction qui permet de créer l'item qui va servir de regénération du labyrinthe
+    Quand le joueur marchera dessus, un nouveau labyrinthe sera généré
+    Retour :
+        Retourne un dictionnaire avec pour clé ses coordonnées et pour valeur son character qui le représente "@"
+    """
     return {(randint(0, laby.width), randint(0, laby.height)): "@"}
 
-def item_solution(laby: Maze, col : int):
+
+def item_solution(laby: Maze, col: int) -> dict:
+    """
+    Fonction qui permet de créer l'item qui affichera la solution du labyrinthe
+    Retour :
+        Retourne un dictionnaire avec pour clé ses coordonnées et pour valeur son character qui le représente "$"
+    """
     return {(randint(0, laby.width), randint(0, laby.height - col)): "$"}
 
+
 def solution(laby: Maze, joueur: dict, cellFin: tuple) -> dict:
+    """
+    Fonction qui permet d'afficher le chemin entre le joueur passé en paramètre
+    et la cellule de fin du labyrinthe passé en paramètre
+    Retour :
+        Retourne un dictionnaire contenant le chemin
+    """
     posJoueur = list(joueur.keys())[0]
     solution = laby.solve_dfs(posJoueur, cellFin)
     str_solution = {c: '*' for c in solution}
     return str_solution
 
 
-def deplacement(joueur: dict, laby: Maze, key) -> dict:
+def deplacement(joueur: dict, laby: Maze, key: int) -> dict:
+    """"
+    Fonction qui permet de changer la clé du joueur passé en paramètre
+    en fonction de la direction qu'il a choisi en appuyant sur les flèches directionnelles
+    Retour :
+        Retourne le nouveau dictionnaire du joueur passé en paramètre
+    """
     cleJoueur = get_key(joueur, "#")
     if key == curses.KEY_DOWN and (cleJoueur[0] + 1, cleJoueur[1]) in laby.get_reachable_cells(cleJoueur):
         cleJoueur = (cleJoueur[0] + 1, cleJoueur[1])
@@ -66,7 +108,12 @@ def deplacement(joueur: dict, laby: Maze, key) -> dict:
     return joueur
 
 
-def lancement_jeu(stdscr):
+def lancement_jeu(stdscr: curses.window) -> None:
+    """
+    Fonction qui permet d'afficher le lancement du jeu
+    Retour :
+        Ne retourne rien
+    """
 
     # Texte à afficher
     lines = [" _____                       _____ _         ___  ___              ",
@@ -85,9 +132,15 @@ def lancement_jeu(stdscr):
         stdscr.addstr(i + 5, 5, line)  # Ajoute 1 pour la bordure
 
     stdscr.refresh()
+    return None
 
-def menu(stdscr):
-    res = ""
+
+def menu(stdscr: curses.window) -> str:
+    """
+    Affiche le menu du jeu et renvoie la touche appuyée par l'utilisateur
+    Retour :
+        Retourne la touche appuyée par l'utilisateur sous la forme d'une chaîne de caractères
+    """
     stdscr.clear()
     lines = [" _   _            _ _ _                _           _   _                              ",
              "| | | |          (_) | |              | |         | | (_)                             ",
@@ -130,7 +183,13 @@ def menu(stdscr):
     return res
 
 
-def felicitation(stdscr, niveau: callable):
+def felicitation(stdscr: curses.window, niveau: callable) -> str:
+    """
+    Affiche le méssage de fin du labyrinthe et permet à l'utilisateur de choisir
+    s'il veut recommencer le niveau ou bien retourner au menu
+    Retour :
+        Retourne la touche appuyée par l'utilisateur sous forme de chaîne de caractères
+    """
     curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
     ROUGE = curses.color_pair(1)
     curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
@@ -155,7 +214,6 @@ def felicitation(stdscr, niveau: callable):
 
     stdscr.refresh()
 
-    res = ""
     while True:
         key = stdscr.getch()
         if key == ord('r') or key == ord('R'):
@@ -167,7 +225,13 @@ def felicitation(stdscr, niveau: callable):
             break
     return res
 
-def niveau_facile(stdscr):
+
+def niveau_facile(stdscr: curses.window) -> str:
+    """
+    Fonction du déroulement du niveau facile
+    Retour :
+        Retourne la touche appuyée par l'utilisateur lors de la fonction felicitation()
+    """
     pygame.mixer.init()
     pygame.mixer.music.load("musiques/facile.mp3")
     sonArrivee = pygame.mixer.Sound("musiques/arrivee.mp3")
@@ -247,7 +311,13 @@ def niveau_facile(stdscr):
     res = felicitation(stdscr, niveau_facile)
     return res
 
-def niveau_moyen(stdscr):
+
+def niveau_moyen(stdscr: curses.window) -> str:
+    """
+    Fonction du déroulement du niveau moyen
+    Retour :
+        Retourne la touche appuyée par l'utilisateur lors de la fonction felicitation()
+    """
     pygame.mixer.init()
     pygame.mixer.music.load("musiques/moyen.mp3")
     pygame.mixer.music.play(-1)
@@ -327,7 +397,13 @@ def niveau_moyen(stdscr):
     res = felicitation(stdscr, niveau_moyen)
     return res
 
-def niveau_difficile(stdscr):
+
+def niveau_difficile(stdscr: curses.window) -> str:
+    """
+    Fonction du déroulement du niveau difficile
+    Retour :
+        Retourne la touche appuyée par l'utilisateur lors de la fonction felicitation()
+    """
     pygame.mixer.init()
     pygame.mixer.music.load("musiques/difficile.mp3")
     pygame.mixer.music.play(-1)
@@ -407,7 +483,13 @@ def niveau_difficile(stdscr):
     res = felicitation(stdscr, niveau_difficile)
     return res
 
-def main(stdscr):
+
+def main(stdscr: curses.window) -> None:
+    """
+    Fonction principale du jeu qui est lancée quand le joueur lance le programme
+    Retour :
+        Ne retourne rien
+    """
     quitter = False
     result = ""
     pygame.mixer.init()
@@ -441,5 +523,7 @@ def main(stdscr):
             continue  # Revenir au menu
 
     stdscr.refresh()
+    return None
+
 
 wrapper(main)
